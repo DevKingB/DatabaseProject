@@ -1,66 +1,64 @@
-Updated Database Schema for Gradebook
+
+Refined Database Schema for Gradebook
 
 1. Department Table
-- department_id: Primary Key, INT, Auto-increment. Unique identifier for each department.
-- department_name: VARCHAR. The name of the department.
-- department_code: VARCHAR. A unique code representing the department.
+- department_id: INT, AUTO_INCREMENT, PRIMARY KEY
+- department_name: VARCHAR
+- department_code: VARCHAR
+Explanation: Stores departmental details, foundational for organizing courses.
 
 2. Course Table
-- course_id: Primary Key, INT, Auto-increment. Unique identifier for each course.
-- department_id: Foreign Key, INT, references Department. Links the course to its department.
-- course_number: VARCHAR. The course number.
-- course_name: VARCHAR. The name of the course.
-- semester_offered: ENUM('Fall', 'Spring', 'Summer'). When the course is offered.
-- year_offered: YEAR. The year the course is offered.
-- student_capacity: INT. Maximum number of students that can enroll.
-- This table stores general information about courses, including their scheduling and capacity.
+- course_id: INT, AUTO_INCREMENT, PRIMARY KEY
+- department_id: INT, FOREIGN KEY REFERENCES Department(department_id)
+- course_number: VARCHAR
+- course_name: VARCHAR
+- semester_offered: ENUM('Fall', 'Spring', 'Summer')
+- year_offered: YEAR
+- student_capacity: INT
+Explanation: Contains course information, organized by department.
 
-3. GradingCriteria Table (Adjusted)
-- criteria_id: Primary Key, INT, Auto-increment. Unique identifier for each grading criteria.
-- criteria_name: VARCHAR. The name of the grading criteria (e.g., Participation, Homework).
-- This table lists possible grading criteria categories, allowing for a dynamic set of grading metrics across different courses.
+3. GradingComponent Table
+- component_id: INT, AUTO_INCREMENT, PRIMARY KEY
+- component_name: VARCHAR
+Explanation: Defines various grading components (e.g., Participation, Homework), allowing dynamic grading schemes.
 
-4. CourseGradingStructure Table (New)
-- structure_id: Primary Key, INT, Auto-increment. Unique identifier for each entry.
-- course_id: Foreign Key, INT, references Course. Identifies the course.
-- criteria_id: Foreign Key, INT, references GradingCriteria. Identifies the grading criteria used.
-- weight: DECIMAL. The weight of this criteria in the course's overall grade calculation.
-- This table links courses to their grading criteria and specifies the weight of each criteria, enabling dynamic grading adjustments.
+4. CourseGradingPolicy Table
+- policy_id: INT, AUTO_INCREMENT, PRIMARY KEY
+- course_id: INT, FOREIGN KEY REFERENCES Course(course_id)
+- component_id: INT, FOREIGN KEY REFERENCES GradingComponent(component_id)
+- weight: DECIMAL
+Explanation: Links courses to grading components, defining their weight within a course's grading policy for flexibility.
 
-5. Student Table
-- student_id: Primary Key, INT, Auto-increment. Unique identifier for each student.
-- first_name: VARCHAR. The student's first name.
-- last_name: VARCHAR. The student's last name.
-- email: VARCHAR, unique. The student's email address.
-- Stores basic information about students.
+5. Assignment Table
+- assignment_id: INT, AUTO_INCREMENT, PRIMARY KEY
+- course_id: INT, FOREIGN KEY REFERENCES Course(course_id)
+- component_id: INT, FOREIGN KEY REFERENCES GradingComponent(component_id)
+- assignment_name: VARCHAR
+- total_points: INT
+Explanation: Supports unspecified numbers of assignments per grading component, linked to courses.
 
-6. Enrollment Table
-- enrollment_id: Primary Key, INT, Auto-increment. Unique identifier for each enrollment record.
-- student_id: Foreign Key, INT, references Student. The enrolled student.
-- course_id: Foreign Key, INT, references Course. The course in which the student is enrolled.
-- semester: ENUM('Fall', 'Spring', 'Summer'). The semester of enrollment.
-- year: YEAR. The year of enrollment.
-- final_grade: DECIMAL (nullable). The student's final grade in the course.
-- Tracks which students are enrolled in which courses.
+6. Student Table
+- student_id: INT, AUTO_INCREMENT, PRIMARY KEY
+- first_name: VARCHAR
+- last_name: VARCHAR
+- email: VARCHAR, UNIQUE
+Explanation: Tracks student information.
 
-7. Assignments Table (Adjusted)
-- assignment_id: Primary Key, INT, Auto-increment. Unique identifier for each assignment.
-- course_id: Foreign Key, INT, references Course. The course the assignment belongs to.
-- criteria_id: Foreign Key, INT, references GradingCriteria. The grading criteria category of the assignment.
-- assignment_name: VARCHAR. The name of the assignment.
-- total_points: INT. The total points possible for the assignment.
-- weight: DECIMAL. The dynamic weight of the assignment within its grading criteria category.
-- Allows for flexible assignment management, including dynamic weighting within categories.
+7. Enrollment Table
+- enrollment_id: INT, AUTO_INCREMENT, PRIMARY KEY
+- student_id: INT, FOREIGN KEY REFERENCES Student(student_id)
+- course_id: INT, FOREIGN KEY REFERENCES Course(course_id)
+- semester: ENUM('Fall', 'Spring', 'Summer')
+- year: YEAR
+Explanation: Records enrollments, essential for tracking student-course registrations.
 
-8. StudentAssignments Table
-- student_assignment_id: Primary Key, INT, Auto-increment. Unique identifier for each student assignment record.
-- assignment_id: Foreign Key, INT, references Assignments. The assignment.
-- student_id: Foreign Key, INT, references Student. The student.
-- points_earned: DECIMAL. The points the student earned on the assignment.
-- comments: TEXT (optional). Any comments on the student's performance.
-- Records students' performances on individual assignments.
+8. StudentAssignment Table
+- student_assignment_id: INT, AUTO_INCREMENT, PRIMARY KEY
+- assignment_id: INT, FOREIGN KEY REFERENCES Assignment(assignment_id)
+- student_id: INT, FOREIGN KEY REFERENCES Student(student_id)
+- points_earned: DECIMAL
+- comments: TEXT
+Explanation: Records students' performances on individual assignments.
 
 Design Considerations:
-- Flexibility in grading criteria and weights is achieved by separating grading criteria from courses and linking them via the CourseGradingStructure table.
-- Dynamic assignment weighting within categories is facilitated by the Assignments table, which allows for the number of assignments and their weights to change over time.
-- The schema supports a broad range of operations required for managing a gradebook, from enrolling students in courses to calculating grades based on dynamic criteria.
+- The schema is designed for flexibility in grading and assignments while being streamlined for easy management.
