@@ -1,0 +1,85 @@
+
+Final Combined Database Schema for Gradebook
+
+1. Department Table
+- department_id: INT, AUTO_INCREMENT, PRIMARY KEY - Unique identifier for each department.
+- department_name: VARCHAR - The name of the department.
+- department_code: VARCHAR - A unique code for the department.
+Explanation: Organizes courses into departments for better management and categorization.
+
+2. Course Table
+- course_id: INT, AUTO_INCREMENT, PRIMARY KEY - Unique identifier for each course.
+- department_id: INT, FOREIGN KEY REFERENCES Department(department_id) - Links the course to its department.
+- course_number: VARCHAR - The course number.
+- course_name: VARCHAR - The name of the course.
+- semester_offered: ENUM('Fall', 'Spring', 'Summer') - Semester when the course is offered.
+- year_offered: YEAR - The year the course is offered.
+- student_capacity: INT - Maximum number of students for the course.
+- grading_structure: TEXT or JSON (optional) - Dynamic grading criteria and weights in JSON format for advanced use cases.
+Explanation: Central to managing course offerings, including dynamic grading structures for advanced grading scenarios.
+
+3. GradingCriteria Table (Modified)
+- criteria_id: INT, AUTO_INCREMENT, PRIMARY KEY - Unique identifier for a grading criterion.
+- criteria_name: VARCHAR - Name of the grading criterion (e.g., Participation, Homework).
+Explanation: Defines a set of possible grading criteria applicable across different courses, allowing for dynamic grading schemes.
+
+4. CourseGradingPolicy Table (Optional)
+- policy_id: INT, AUTO_INCREMENT, PRIMARY KEY - Unique identifier for each course grading policy entry.
+- course_id: INT, FOREIGN KEY REFERENCES Course(course_id) - The course to which the grading policy applies.
+- criteria_id: INT, FOREIGN KEY REFERENCES GradingCriteria(criteria_id) - The specific grading criterion.
+- weight: DECIMAL - The weight of this criterion in the course's overall grade calculation.
+Explanation: Offers a flexible approach to manage grading criteria weights dynamically for each course, complementing the JSON column in the Course table for detailed management.
+
+5. Assignment Table
+- assignment_id: INT, AUTO_INCREMENT, PRIMARY KEY - Unique identifier for each assignment.
+- course_id: INT, FOREIGN KEY REFERENCES Course(course_id) - Links the assignment to its course.
+- criteria_id: INT, FOREIGN KEY REFERENCES GradingCriteria(criteria_id) - The grading criterion this assignment falls under.
+- assignment_name: VARCHAR - The name of the assignment.
+- total_points: INT - The total points possible for the assignment.
+Explanation: Supports flexible management of assignments, accommodating an unspecified number of assignments per grading component.
+
+6. Student Table
+- student_id: INT, AUTO_INCREMENT, PRIMARY KEY - Unique identifier for each student.
+- first_name: VARCHAR - Student's first name.
+- last_name: VARCHAR - Student's last name.
+- email: VARCHAR, UNIQUE - Student's email address.
+Explanation: Essential for tracking student information.
+
+7. Enrollment Table
+- enrollment_id: INT, AUTO_INCREMENT, PRIMARY KEY - Unique identifier for each enrollment record.
+- student_id: INT, FOREIGN KEY REFERENCES Student(student_id) - The student enrolled in the course.
+- course_id: INT, FOREIGN KEY REFERENCES Course(course_id) - The course in which the student is enrolled.
+- semester: ENUM('Fall', 'Spring', 'Summer') - Semester of the enrollment.
+- year: YEAR - Year of the enrollment.
+Explanation: Tracks which students are enrolled in which courses.
+
+8. StudentAssignment Table
+- student_assignment_id: INT, AUTO_INCREMENT, PRIMARY KEY - Unique identifier for each student assignment record.
+- assignment_id: INT, FOREIGN KEY REFERENCES Assignment(assignment_id) - The assignment being graded.
+- student_id: INT, FOREIGN KEY REFERENCES Student(student_id) - The student who completed the assignment.
+- points_earned: DECIMAL - The points the student earned on the assignment.
+- comments: TEXT (optional) - Additional comments on the student's performance.
+Explanation: Records students' performances on individual assignments, linking students to their submissions.
+
+***********************************************************************************************************************************************
+Notes:
+- Dynamic Grading Schemes: Through the CourseGradingPolicy and GradingCriteria tables.
+- Flexible Assignment Management: Via the Assignment table, accommodating varying numbers and types of assignments.
+- Comprehensive Student Tracking: Through Enrollment and StudentAssignment tables, enabling detailed analysis of student performance.
+- Application-Level Calculations: While the database stores scores and weights, the actual calculations for averages and final grades typically occur within the application logic, interfacing with the database to retrieve necessary data.
+
+Workflow Explanation:
+- Departments and Courses are foundational: Departments are established, and courses are then defined within these departments, each with a unique course number, name, semester, and year offered.
+- Grading Criteria are defined globally, applicable across any course, to ensure consistency in grading standards.
+- Course Grading Policies are set per course, detailing how much weight each grading criterion holds towards the final grade. This allows each course to have a unique grading structure, reflecting the pedagogical priorities of the instructor.
+- Assignments are created for each course, linked to specific grading criteria. This establishes what students will be graded on and how those grades contribute to their final marks.
+- Students are added to the system with unique identifiers and contact information.
+- Enrollments link students to courses, signifying which students are taking which courses in a given semester.
+- Student Assignments record the grades students receive on individual assignments, enabling the calculation of final grades based on the weights defined in the course grading policy.
+
+
+Next Steps:
+- The complexity of implementing this schema lies in effectively utilizing the grading_structure JSON column for dynamic grading scenarios and managing the CourseGradingPolicy table for detailed grading criteria weight management.
+- Developing an ER diagram will help visualize table relationships and is crucial for understanding how to construct SQL queries for operations like calculating final grades or adjusting grading criteria weights.
+- Logic for dynamic grading calculations will primarily reside in the application layer, interpreting the grading_structure JSON data or CourseGradingPolicy entries to compute grades based on the flexible criteria and weights specified.
+
