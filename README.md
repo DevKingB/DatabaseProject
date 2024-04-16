@@ -1,5 +1,5 @@
 # Grade Book Database Project
-
+TEAM: Brandon Clarke, Ryan Taylor, Matthew Getachew
 ## Overview
 This project implements a grade book database to manage student grades across various courses taught by a professor. The database supports multiple grading categories, dynamic assignment allocations, and comprehensive grade computations.
 
