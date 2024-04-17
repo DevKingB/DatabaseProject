@@ -1,4 +1,4 @@
--- Active: 1713146534487@@127.0.0.1@3306@gradebook
+-- Active: 1713288377970@@127.0.0.1@3306@gradebook
 DROP PROCEDURE IF EXISTS UpdateScoresForAssignment;
 CREATE DEFINER=`root`@`localhost` PROCEDURE `UpdateScoresForAssignment`(
     IN assignmentName VARCHAR(255), 

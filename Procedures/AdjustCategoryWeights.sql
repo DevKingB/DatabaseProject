@@ -1,5 +1,5 @@
--- Active: 1713146534487@@127.0.0.1@3306@gradebook
-DROP PROCEDURE IF EXISTS AdjustCategoryWeights;
+-- Active: 1713288377970@@127.0.0.1@3306@gradebook
+DROP PROCEDURE IF EXISTS  AdjustCategoryWeights;
 CREATE DEFINER=`root`@`localhost` PROCEDURE `AdjustCategoryWeights`(
     IN p_course_id INT,
     IN p_primary_category_id INT,
@@ -49,4 +49,4 @@ BEGIN
             SELECT 'Weights adjusted successfully. Total weights now sum up to 100%.';
         END IF;
     END IF;
-END
+END     

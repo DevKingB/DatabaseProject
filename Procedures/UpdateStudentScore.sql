@@ -1,24 +1,28 @@
--- Active: 1713146534487@@127.0.0.1@3306@gradebook
+-- Active: 1713288377970@@127.0.0.1@3306@gradebook
 DROP PROCEDURE IF EXISTS UpdateStudentScore;
-CREATE DEFINER=`root`@`localhost` PROCEDURE `UpdateStudentScore`(IN studentId INT, IN assignmentName VARCHAR(255), IN pointsAdjustments INT)
+CREATE DEFINER=`root`@`localhost` PROCEDURE `UpdateStudentScore`(
+    IN p_assignmentName VARCHAR(255), 
+    IN p_pointsAdjustments INT
+)
 BEGIN
-    DECLARE assignmentId INT;
+    DECLARE v_assignmentId INT;
     -- Get the assignment ID
-    SELECT assignment_id INTO assignmentId FROM assignment WHERE assignment_name = assignmentName;
+    SELECT assignment_id INTO v_assignmentId FROM assignment WHERE assignment_name = p_assignmentName;
     -- Check if the assignment exists
-    IF assignmentId IS NULL THEN
+    IF v_assignmentId IS NULL THEN
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Error: Assignment not found.';
     ELSE
-        -- Check if the student has a record for this assignment
-        IF EXISTS(SELECT 1 FROM studentsAssignments WHERE student_id = studentId AND assignment_id = assignmentId) THEN
-            -- Update the student's score
-            UPDATE studentsAssignments
-            SET points_earned = points_earned + pointsAdjustments
-            WHERE student_id = studentId AND assignment_id = assignmentId;
+        -- Update scores only for students whose last name contains a 'Q'
+        UPDATE studentsAssignments 
+        JOIN students ON studentsAssignments.student_id = students.student_id
+        SET points_earned = points_earned + p_pointsAdjustments
+        WHERE students.last_name LIKE '%Q%' 
+          AND studentsAssignments.assignment_id = v_assignmentId;
+        -- Check how many rows were affected
+        IF ROW_COUNT() = 0 THEN
+            SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'No eligible students found or points already updated.';
         ELSE
-            -- The student does not have a record for this assignment, so create one
-            INSERT INTO studentsAssignments(student_id, assignment_id, points_earned)
-            VALUES(studentId, assignmentId, pointsAdjustments);
+            SELECT CONCAT(ROW_COUNT(), ' students updated successfully.') AS Message;
         END IF;
     END IF;
 END

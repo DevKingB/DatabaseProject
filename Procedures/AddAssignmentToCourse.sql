@@ -1,3 +1,4 @@
+-- Active: 1713288377970@@127.0.0.1@3306@gradebook
 DROP PROCEDURE IF EXISTS AddAssignmentToCourse;
 CREATE DEFINER=`root`@`localhost` PROCEDURE `AddAssignmentToCourse`(
     IN _course_id INT,
@@ -17,14 +18,14 @@ BEGIN
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Error: Total points cannot be negative.';
     ELSE
         -- Check for duplicate assignment name within the same course and criteria
-        IF EXISTS (SELECT 1 FROM assignments 
+        IF EXISTS (SELECT 1 FROM assignment 
                    WHERE course_id = _course_id AND 
                          criteria_id = _criteria_id AND 
                          assignment_name = _assignment_name) THEN
             SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Error: An assignment with the specified name already exists for this course and criteria.';
         ELSE
             -- Proceed with adding the assignment if all checks pass
-            INSERT INTO assignments(course_id, criteria_id, assignment_name, total_points)
+            INSERT INTO assignment(course_id, criteria_id, assignment_name, total_points)
             VALUES (_course_id, _criteria_id, _assignment_name, _total_points);
             -- Check if the insert was successful
             IF ROW_COUNT() = 0 THEN

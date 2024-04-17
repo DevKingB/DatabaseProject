@@ -1,4 +1,4 @@
--- Active: 1713146534487@@127.0.0.1@3306@gradebook
+-- Active: 1713288377970@@127.0.0.1@3306@gradebook
 DROP PROCEDURE IF EXISTS ComputeStudentGrade;
 CREATE DEFINER=`root`@`localhost` PROCEDURE `ComputeStudentGrade`(
     IN p_student_id INT, 
@@ -11,8 +11,8 @@ BEGIN
     DECLARE v_does_course_exist INT DEFAULT 0;
     DECLARE v_is_student_enrolled INT DEFAULT 0;
     START TRANSACTION;
-    main_block: BEGIN  -- Correctly place the main_block label here
-
+    -- Label for begin block for structured exception handling
+    main_block: BEGIN
         -- Check if the student exists
         SELECT EXISTS(SELECT 1 FROM students WHERE student_id = p_student_id) INTO v_does_student_exist;
         -- Check if the course exists
@@ -25,7 +25,7 @@ BEGIN
             LEAVE main_block;
         END IF;
         -- Check if the student is enrolled in the course
-        SELECT EXISTS(SELECT 1 FROM student_courses WHERE student_id = p_student_id AND course_id = p_course_id) INTO v_is_student_enrolled;
+        SELECT EXISTS(SELECT 1 FROM enrollment WHERE student_id = p_student_id AND course_id = p_course_id) INTO v_is_student_enrolled;
         IF v_is_student_enrolled = 0 THEN
             SET p_message = 'Error: Student is not enrolled in the course.';
             SELECT p_message, v_final_grade;
@@ -45,11 +45,11 @@ BEGIN
         FROM (
             SELECT 
                 cgp.criteria_id,
-                IF(a.total_points = 0 OR sa.points_earned IS NULL, 0,  -- Avoid division by zero
-                   (sa.points_earned / a.total_points) * cgp.weight) AS v_category_contribution
+                SUM(IF(a.total_points = 0 OR sa.points_earned IS NULL, 0, 
+                       (sa.points_earned / a.total_points) * cgp.weight)) AS v_category_contribution
             FROM course_grading_policy cgp
             JOIN assignment a ON a.course_id = cgp.course_id AND a.criteria_id = cgp.criteria_id
-            LEFT JOIN students_assignments sa ON sa.assignment_id = a.assignment_id AND sa.student_id = p_student_id
+            LEFT JOIN studentsassignments sa ON sa.assignment_id = a.assignment_id AND sa.student_id = p_student_id
             WHERE cgp.course_id = p_course_id
             GROUP BY cgp.criteria_id
         ) AS weighted_scores;
